@@ -1,7 +1,10 @@
-const { all, not, sum, product, equals, update, __, nth, range, head, compose, map, split } = require('ramda')
+const { find, liftN, all, not, sum, product, equals, update, __, nth, range, head, compose, map, split } = require('ramda')
 const input = require('./lib/utils').parseFile('02')
 const initialState = compose(map(Number), split(/,/), head)(input)
 
+/**
+ * MAIN
+ */
 
 const step = (pos, program) => {
   
@@ -29,7 +32,7 @@ const step = (pos, program) => {
 
 }
 
-const loop = (pos, program) => {
+const run = (pos, program) => {
   let nextpos = pos, state = program, halt = false
   while (not(halt)) {
     [nextpos, state, halt] = step(nextpos, state)
@@ -37,21 +40,32 @@ const loop = (pos, program) => {
   return state
 }
 
-/*console.log(
-  all(equals(true), [
-    equals(loop(0, [1,9,10,3,2,3,11,0,99,30,40,50]), [3500,9,10,70,2,3,11,0,99,30,40,50]),
-    equals(loop(0, [1,0,0,0,99]), [2,0,0,0,99]),
-    equals(loop(0, [2,3,0,3,99]), [2,3,0,6,99]),
-    equals(loop(0, [2,4,4,5,99,0]), [2,4,4,5,99,9801]),
-    equals(loop(0, [1,1,1,4,99,5,6,0,99]), [30,1,1,4,2,5,6,0,99])
-  ])
-)*/
+const restore = (noun, verb) => compose(update(1,noun), update(2,verb))
+const output = nth(0)
 
-const restore = compose(update(1,12), update(2,2))
+/**
+ * TESTS
+ */
+all(equals(true), [
+  equals(run(0, [1,9,10,3,2,3,11,0,99,30,40,50]), [3500,9,10,70,2,3,11,0,99,30,40,50]),
+  equals(run(0, [1,0,0,0,99]), [2,0,0,0,99]),
+  equals(run(0, [2,3,0,3,99]), [2,3,0,6,99]),
+  equals(run(0, [2,4,4,5,99,0]), [2,4,4,5,99,9801]),
+  equals(run(0, [1,1,1,4,99,5,6,0,99]), [30,1,1,4,2,5,6,0,99])
+]) || console.log("ERROR in part 1 tests")
 
+equals(output(run(0, restore(12,2)(initialState))), 3716293) || console.log("ERROR in part 1 result")
 
+/**
+ * PARTS
+ */
 
 module.exports = {
-  a: _ => nth(0, loop(0, restore(initialState))),
-  b: _ => 'b'
+  a: _ => output(run(0, restore(12,2)(initialState))),
+  b: _ => {
+
+    const pairs = liftN(2, (...xs) => xs)(range(0, 100), range(0, 100))
+    let [noun, verb] = find(([noun, verb]) => equals(output(run(0, restore(noun, verb)(initialState))), 19690720), pairs)
+    return (noun * 100) + verb
+  }
 }

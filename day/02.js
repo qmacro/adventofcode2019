@@ -43,16 +43,6 @@ const run = (pos, program) => {
 const restore = (noun, verb) => compose(update(1,noun), update(2,verb))
 const output = nth(0)
 
-/**
- * TESTS
- */
-all(equals(true), [
-  equals(run(0, [1,9,10,3,2,3,11,0,99,30,40,50]), [3500,9,10,70,2,3,11,0,99,30,40,50]),
-  equals(run(0, [1,0,0,0,99]), [2,0,0,0,99]),
-  equals(run(0, [2,3,0,3,99]), [2,3,0,6,99]),
-  equals(run(0, [2,4,4,5,99,0]), [2,4,4,5,99,9801]),
-  equals(run(0, [1,1,1,4,99,5,6,0,99]), [30,1,1,4,2,5,6,0,99])
-]) || console.log("ERROR in part 1 tests")
 
 /**
  * PARTS
@@ -64,6 +54,17 @@ b = _ => {
   let [noun, verb] = find(([noun, verb]) => equals(output(run(0, restore(noun, verb)(initialState))), 19690720), pairs)
   return (noun * 100) + verb
 }
+
+/**
+ * TESTS
+ */
+all(equals(true), [
+  equals(run(0, [1,9,10,3,2,3,11,0,99,30,40,50]), [3500,9,10,70,2,3,11,0,99,30,40,50]),
+  equals(run(0, [1,0,0,0,99]), [2,0,0,0,99]),
+  equals(run(0, [2,3,0,3,99]), [2,3,0,6,99]),
+  equals(run(0, [2,4,4,5,99,0]), [2,4,4,5,99,9801]),
+  equals(run(0, [1,1,1,4,99,5,6,0,99]), [30,1,1,4,2,5,6,0,99])
+]) || console.log("ERROR in part 1 tests")
 
 equals(a(), 3716293) || console.log("ERROR in part 'a' result")
 equals(b(), 6429)  || console.log("ERROR in part 'b' result")

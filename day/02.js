@@ -54,18 +54,18 @@ all(equals(true), [
   equals(run(0, [1,1,1,4,99,5,6,0,99]), [30,1,1,4,2,5,6,0,99])
 ]) || console.log("ERROR in part 1 tests")
 
-equals(output(run(0, restore(12,2)(initialState))), 3716293) || console.log("ERROR in part 1 result")
-
 /**
  * PARTS
  */
 
-module.exports = {
-  a: _ => output(run(0, restore(12,2)(initialState))),
-  b: _ => {
-
-    const pairs = liftN(2, (...xs) => xs)(range(0, 100), range(0, 100))
-    let [noun, verb] = find(([noun, verb]) => equals(output(run(0, restore(noun, verb)(initialState))), 19690720), pairs)
-    return (noun * 100) + verb
-  }
+a = _ => output(run(0, restore(12,2)(initialState))),
+b = _ => {
+  const pairs = liftN(2, (...xs) => xs)(range(0, 100), range(0, 100))
+  let [noun, verb] = find(([noun, verb]) => equals(output(run(0, restore(noun, verb)(initialState))), 19690720), pairs)
+  return (noun * 100) + verb
 }
+
+equals(a(), 3716293) || console.log("ERROR in part 'a' result")
+equals(b(), 6429)  || console.log("ERROR in part 'b' result")
+
+module.exports = {a, b}

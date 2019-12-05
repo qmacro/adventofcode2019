@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "cont-test": "npx nodemon --exec npm test",
+    "test": "clear && node runtests.js"
   },
   "keywords": [],
   "author": "",
@@ -13,6 +14,8 @@
     "ramda": "^0.26.1"
   },
   "devDependencies": {
+    "jasmine": "^3.5.0",
+    "jasmine-console-reporter": "^3.1.0",
     "nodemon": "^2.0.1"
   }
 }

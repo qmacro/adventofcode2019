@@ -72,4 +72,9 @@ b = _ => 'b'
  * TESTS
  */
 
-module.exports = {a, b}
+module.exports = {
+  parseInstruction,
+  a,
+  b
+}
+

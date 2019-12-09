@@ -1,79 +1,159 @@
-const { reverse, match, find, liftN, all, not, sum, product, equals, update, __, nth, range, head, compose, map, split } = require('ramda')
-const input = require('./lib/utils').parseFile('05')
-const initialState = compose(map(Number), split(/,/), head)(input)
-
 /**
- * MAIN
+ * IMPORTS
  */
 
+const { concat, append, apply, slice, prop, add, curry, reverse, match, find, liftN, all, not, sum, product, equals, update, __, nth, range, head, compose, map, split } = require('ramda')
+const input = require('./lib/utils').parseFile('05')
+
+/**
+ * FUNCTIONS
+ */
+
+// Parses into initial program state
+// e.g. ['1002,4,3,4,33'] -> [1002,4,3,4,33]
+const parseInitialState = compose(map(Number), split(/,/), head)
+
 // Parses out the opcode and any parameter modes from an instruction,
-// returning an object that can be used to get the opcode and the
+// returning an object that can be used to get the opcode and also the
 // parameter mode for a given parameter position (1-indexed)
 const parseInstruction = n => {
-  const results = match(/^(\d*?)(\d{1,2})$/, n)
+  const results = match(/^(\d*?)(\d{1,2})$/, String(n))
   const parsed = map(Number, [results[2]].concat(compose(split(''), reverse)(results[1])))
   return {
     opcode: nth(0, parsed),
-    mode: p => nth(p, parsed) || 0
+    pmode: p => nth(p, parsed) || 0
   }
 }
 
-// <- position, state
-// -> new position, new state, halt?
-const step = (pos, program) => {
+// Returns a parameter object with address and value, given the following:
+// parsed instruction, current program state, current pointer, which parameter (1-indexed)
+const getParam = curry((parsedInstruction, programState, pointer, nthParam) => {
+  const address = nth(pointer + nthParam, programState)
+  return {
+    address,
+    value: parsedInstruction.pmode(nthParam) === 0 ? programState[address] : address
+  }
+})
 
-  const nextpos = pos + 4
-  const [opcode, op1loc, op2loc, resloc] = map(nth(__, program), range(pos, nextpos))
-  const values = map(nth(__, program), [op1loc, op2loc])
-  let result, newProgram
+// <- pointer, program state, current output
+// -> new pointer, new program state, new output, halt?
+const step = (pointer, programState, currentOutput, valIn) => {
 
-  switch (opcode) {
-    case 1:
-      result = sum(values)
+  const i = parseInstruction(nth(pointer, programState))
+  const p = getParam(i, programState, pointer)
+  let stepOutput = []
+
+  // Helper function that will perform 'operator(operand1, operand2)' evaluations
+  const twoOperandFunction = (i, programState, pointer, fn) => {
+    const values = map(prop('value'), map(p, [1,2]))
+    const result = fn(values)
+    return [
+      update(p(3).address, result, programState),
+      add(4, pointer)
+    ]
+  }
+
+  let newProgramState, newPointer
+  let res
+  switch (i.opcode) {
+
+    case 1: // ADD
+      //console.log("ADD:", slice(pointer, pointer + 4, programState))
+      res = [newProgramState, newPointer] = twoOperandFunction(i, programState, pointer, sum)
+      newProgramState = res[0]
+      newPointer = res[1]
       break
-    case 2:
-      result = product(values)
+
+    case 2: // MULTIPLY
+      //console.log("MUL:", slice(pointer, pointer + 4, programState))
+      res = twoOperandFunction(i, programState, pointer, product)
+      newProgramState = res[0]
+      newPointer = res[1]
+      break
+
+    case 3: // INPUT
+      //console.log("INP:", slice(pointer, pointer + 2, programState))
+      newProgramState = update(p(1).address, valIn, programState)
+      newPointer = add(2, pointer)
+      break
+
+    case 4: // OUTPUT
+      //console.log("OUT:", slice(pointer, pointer + 2, programState))
+      console.log("-->", programState[programState[pointer+1]])
+      stepOutput = append(programState[programState[pointer+1]], stepOutput)
+      newProgramState = programState
+      newPointer = add(2, pointer)
+      break
+
+    case 5: // JUMP-IF-TRUE
+      newProgramState = programState
+      if(getParam(i, programState, pointer, 1).value != 0) {
+        newPointer = getParam(i, programState, pointer, 2).value
+      } else {
+        newPointer = add(3, pointer)
+      }
+      break
+
+    case 6: // JUMP-IF-FALSE
+      newProgramState = programState
+      if(p(1).value == 0) {
+        newPointer = p(2).value
+      } else {
+        newPointer = add(3, pointer)
+      }
+      break
+
+    case 7: // LESS THAN
+      debugger;
+      newProgramState = update(p(3).address, p(1).value < p(2).value ? 1 : 0, programState)
+      newPointer = add(4, pointer)
+      break
+
+    case 8: // EQUALS
+      debugger;
+      newProgramState = update(p(3).address, p(1).value == p(2).value ? 1 : 0, programState)
+      newPointer = add(4, pointer)
       break
   }
 
-  newProgram = update(resloc, result, program)
-
   return [
-    nextpos,
-    newProgram,
-    equals(nth(nextpos, newProgram), 99) // halt?
+    newPointer,
+    newProgramState,
+    concat(currentOutput, stepOutput),
+    equals(nth(newPointer, newProgramState), 99) // halt?
   ]
 
 }
 
 const restore = (noun, verb) => compose(update(1,noun), update(2,verb))
-const output = nth(0)
 
 // -> pos, state
 // <- final value from pos 0
-const run = (pos, program) => {
+const run = (pos, program, output, valIn) => {
   switch (nth(pos, program)) {
     case 99:
-      return output(program)
+      return [nth(0, program), output]
     default:
-      return run(...step(pos, program))
+      return run(...step(pos, program, output, valIn))
   }
 
 }
 
 /**
- * PARTS
- */
+* MAIN
+*/
 
-a = _ => 'a'
-b = _ => 'b'
+a = _ => run(0, parseInitialState(input), [], 1)
+b = _ => run(0, parseInitialState(input), [], 5)
 
 /**
- * TESTS
+ * EXPORTS
  */
 
 module.exports = {
+  parseInitialState,
   parseInstruction,
+  getParam,
   a,
   b
 }

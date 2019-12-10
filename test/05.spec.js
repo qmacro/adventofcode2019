@@ -56,3 +56,13 @@ describe(`Param address determination ${sample2}`, () => {
     expect(day.getParam(day.parseInstruction(1002), [1002,4,3,4,33], pointer, 1).address).toEqual(4)
   })
 })
+
+describe(`Puzzle answers`, () => {
+  it('Solves part 1', () => {
+    expect(day.a()).toEqual(9961446)
+  })
+  it('Solves part 2', () => {
+    expect(day.b()).toEqual(742621)
+  })
+})
+

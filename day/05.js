@@ -2,8 +2,9 @@
  * IMPORTS
  */
 
-const { concat, append, apply, slice, prop, add, curry, reverse, match, find, liftN, all, not, sum, product, equals, update, __, nth, range, head, compose, map, split } = require('ramda')
-const input = require('./lib/utils').parseFile('05')
+const { last, concat, append, apply, slice, prop, add, curry, reverse, match, find, liftN, all, not, sum, product, equals, update, __, nth, range, head, compose, map, split } = require('ramda')
+const { permutations, parseFile } = require('./lib/utils')
+
 
 /**
  * FUNCTIONS
@@ -79,7 +80,6 @@ const step = (pointer, programState, currentOutput, valIn) => {
 
     case 4: // OUTPUT
       //console.log("OUT:", slice(pointer, pointer + 2, programState))
-      console.log("-->", programState[programState[pointer+1]])
       stepOutput = append(programState[programState[pointer+1]], stepOutput)
       newProgramState = programState
       newPointer = add(2, pointer)
@@ -104,13 +104,11 @@ const step = (pointer, programState, currentOutput, valIn) => {
       break
 
     case 7: // LESS THAN
-      debugger;
       newProgramState = update(p(3).address, p(1).value < p(2).value ? 1 : 0, programState)
       newPointer = add(4, pointer)
       break
 
     case 8: // EQUALS
-      debugger;
       newProgramState = update(p(3).address, p(1).value == p(2).value ? 1 : 0, programState)
       newPointer = add(4, pointer)
       break
@@ -132,7 +130,8 @@ const restore = (noun, verb) => compose(update(1,noun), update(2,verb))
 const run = (pos, program, output, valIn) => {
   switch (nth(pos, program)) {
     case 99:
-      return [nth(0, program), output]
+      //return [nth(0, program), output]
+      return last(output)
     default:
       return run(...step(pos, program, output, valIn))
   }
@@ -143,8 +142,10 @@ const run = (pos, program, output, valIn) => {
 * MAIN
 */
 
-a = _ => run(0, parseInitialState(input), [], 1)
-b = _ => run(0, parseInitialState(input), [], 5)
+const initialState = compose(parseInitialState, parseFile)('05')
+
+a = _ => run(0, initialState, [], 1)
+b = _ => run(0, initialState, [], 5)
 
 /**
  * EXPORTS
